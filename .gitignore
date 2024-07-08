@@ -1,1 +1,4 @@
 scratch_notes
+*.o
+Image
+*.map

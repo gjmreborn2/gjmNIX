@@ -13,4 +13,7 @@ UNIX, Linux-like operating system created and developed from scratch for educati
     - GNU toolchain, GNU binutils such as gcc, as, as86 etc.
 
 # Tasks to be done
+* Add user-space, package-manager etc.
+* Add UEFI integration
+* Run kernel on the real hardware instead of qemu all the time
 * Add support for other architectures such as x86_64, difference between Intel and ARM chips, ARM, AVR (as way to begin studying domain of embedded systems)
