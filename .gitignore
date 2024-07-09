@@ -2,3 +2,4 @@ scratch_notes
 *.o
 Image
 *.map
+/toolchain_bin/

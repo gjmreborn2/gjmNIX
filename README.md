@@ -11,8 +11,10 @@ UNIX, Linux-like operating system created and developed from scratch for educati
         - qemu-system-i386 (care: qemu-i386 is user-space emulator!)
         - qemu-system-x86_64
     - GNU toolchain, GNU binutils such as gcc, as, as86 etc.
+2. Build stage:
 
 # Tasks to be done
+* The documentation for GCC says you are required to implement the functions memset, memcpy, memcmp and memmove yourself in freestanding mode.
 * Add user-space, package-manager etc.
 * Add UEFI integration
 * Run kernel on the real hardware instead of qemu all the time
