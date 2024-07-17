@@ -1,5 +1,9 @@
-scratch_notes
+/to_ignore/
 *.o
 Image
 *.map
 /toolchain_bin/
+/.idea/
+*.bin
+*.iso
+build/isodir
