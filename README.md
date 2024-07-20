@@ -10,7 +10,9 @@ UNIX, Linux-like operating system created and developed from scratch for educati
     - qemu for target hardware architecture (install it by `sudo dnf install qemu -y`), for example following executables:
         - qemu-system-i386 (care: qemu-i386 is user-space emulator!)
         - qemu-system-x86_64
-    - GNU toolchain, GNU binutils such as gcc, as, as86 etc.
+    - GNU toolchain, GNU binutils such as gcc, as, as86 etc. cross-compiled as stated in docs
+    - GRUB 2
+    - xorriso for cdrom iso
 2. Build stage:
 
 # Tasks to be done
