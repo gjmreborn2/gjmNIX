@@ -30,11 +30,11 @@
  * NOTE: ctl must be equal to 0 for all HDD's with heads <= 8, and ctl=8 for drives with more than 8 heads
  */
 
-#define MULTIBOOT2_HEADER_MAGIC                 0xE85250D6
-#define MULTIBOOT2_BOOTLOADER_MAGIC	            0x36D76289
-#define MULTIBOOT_HEADER_TAG_ADDRESS  		        2
-#define MULTIBOOT_HEADER_TAG_OPTIONAL 		        1
-#define MULTIBOOT_HEADER_TAG_FRAMEBUFFER  	     5
+//#define MULTIBOOT2_HEADER_MAGIC                 0xE85250D6
+//#define MULTIBOOT2_BOOTLOADER_MAGIC	            0x36D76289
+//#define MULTIBOOT_HEADER_TAG_ADDRESS  		        2
+//#define MULTIBOOT_HEADER_TAG_OPTIONAL 		        1
+//#define MULTIBOOT_HEADER_TAG_FRAMEBUFFER  	     5
 
 struct boot_info {
 
@@ -42,6 +42,4 @@ struct boot_info {
 
 extern struct boot_info boot_info;
 
-//extern struct boot_info parse_boot_info(uint32_t multiboot2_address);
-extern void parse_boot_info(unsigned long addr);
-
+extern struct boot_info parse_boot_info(uint32_t multiboot2_address);

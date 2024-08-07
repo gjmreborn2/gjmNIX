@@ -13,7 +13,7 @@
 #define internal static
 
 inline void outb(port_num port, byte val) {
-    __asm__ volatile ( "outb %b0 %w1" : : "a"(val), "Nd"(port) : "memory");
+    //__asm__ volatile ( "outb %b0 %w1" : : "a"(val), "Nd"(port) : "memory");
 }
 
 inline byte inb(port_num port) {

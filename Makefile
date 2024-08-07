@@ -5,7 +5,7 @@ CPP=i686-elf-cpp
 
 LDFLAGS=-s -x -M
 CCFLAGS=-Wall -Wextra -O2 -ffreestanding -fstrength-reduce -fomit-frame-pointer
-CPPFLAGS=-nostdinc -Iinclude
+CPPFLAGS=-Iinclude -ffreestanding
 
 .PHONY: all clean install test
 #.SUFFIXES: .o .c .S .s
@@ -15,7 +15,7 @@ CPPFLAGS=-nostdinc -Iinclude
 #.S.o:
 #	$(CC) -c $< -o $@ $(CCFLAGS) $(CPPFLAGS)
 
-LINK_LIST=boot/crti.o boot/boot.o init/init.o boot/crtn.o
+LINK_LIST=boot/crti.o boot/boot.o init/init.o drivers/block_dev/floppy.o boot/crtn.o
 
 all:
 	i686-elf-cpp boot/boot.S -o boot/boot.s $(CPPFLAGS)
@@ -28,6 +28,7 @@ all:
 	#i686-elf-as boot/crtend.s -o boot/crtend.o
 	i686-elf-cpp boot/crtn.S -o boot/crtn.s $(CPPFLAGS)
 	i686-elf-as boot/crtn.s -o boot/crtn.o
+	i686-elf-gcc -c drivers/block_dev/floppy.c -o drivers/block_dev/floppy.o $(CCFLAGS) $(CPPFLAGS)
 	i686-elf-gcc -c init/init.c -o init/init.o $(CCFLAGS) $(CPPFLAGS)
 	i686-elf-gcc -T build/linker.ld -o build/gjmNIX.bin $(CPPFLAGS) -nostdlib -lgcc $(LINK_LIST)
 
@@ -44,4 +45,5 @@ clean:
 	rm -f boot/*.s boot/*.o
 	rm -rf build/isodir build/*.bin
 	rm -f init/*.o
+	rm -f drivers/block_dev/*.o drivers/character_dev/*.o drivers/*.o
 	rm -f *.iso
