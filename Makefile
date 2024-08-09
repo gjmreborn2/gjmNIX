@@ -9,38 +9,65 @@ LDFLAGS=-s -x -M
 CCFLAGS=-Wall -Wextra -O2 -ffreestanding -fstrength-reduce -fomit-frame-pointer
 CPPFLAGS=-Iinclude -ffreestanding
 
-ARCHIVES=kernel/kernel.o mm/mm.o fs/fs.o
+.S.s:
+	$(CPP) $(CPPFLAGS) -o $*.s $<
 
-.PHONY: all clean install test
-#.SUFFIXES: .o .c .S .s
+.c.s:
+	$(CC) $(CCFLAGS) -Iinclude -S -o $*.s $<
 
-#.c.o:
-#	$(CC) -c $< -o $@ $(CCFLAGS) $(CPPFLAGS)
-#.S.o:
-#	$(CC) -c $< -o $@ $(CCFLAGS) $(CPPFLAGS)
+.s.o:
+	$(AS) -c -o $*.o $<
 
-LINK_LIST=boot/crti.o boot/boot.o init/init.o drivers/block_dev/floppy.o klib/kprintf.o klib/multiboot.o drivers/character_dev/console.o boot/crtn.o lib/ctype.o lib/stdlib.o lib/string.o
+.c.o:
+	$(CC) $(CCFLAGS) -Iinclude -c -o $*.o $<
 
-all:
-	i686-elf-cpp boot/boot.S -o boot/boot.s $(CPPFLAGS)
-	i686-elf-as boot/boot.s -o boot/boot.o
-	i686-elf-cpp boot/crti.S -o boot/crti.s $(CPPFLAGS)
-	i686-elf-as boot/crti.s -o boot/crti.o
-	#i686-elf-cpp boot/crtbegin.S -o boot/crtbegin.s
-	#i686-elf-as boot/crtbegin.s -o boot/crtbegin.o
-	#i686-elf-cpp boot/crtend.S -o boot/crtend.s
-	#i686-elf-as boot/crtend.s -o boot/crtend.o
-	i686-elf-cpp boot/crtn.S -o boot/crtn.s $(CPPFLAGS)
-	i686-elf-as boot/crtn.s -o boot/crtn.o
-	i686-elf-gcc -c drivers/block_dev/floppy.c -o drivers/block_dev/floppy.o $(CCFLAGS) $(CPPFLAGS)
-	i686-elf-gcc -c drivers/character_dev/console.c -o drivers/character_dev/console.o $(CCFLAGS) $(CPPFLAGS)
-	i686-elf-gcc -c klib/kprintf.c -o klib/kprintf.o $(CCFLAGS) $(CPPFLAGS)
-	i686-elf-gcc -c klib/multiboot.c -o klib/multiboot.o $(CCFLAGS) $(CPPFLAGS)
-	i686-elf-gcc -c lib/stdlib.c -o lib/stdlib.o $(CCFLAGS) $(CPPFLAGS)
-	i686-elf-gcc -c lib/string.c -o lib/string.o $(CCFLAGS) $(CPPFLAGS)
-	i686-elf-gcc -c lib/ctype.c -o lib/ctype.o $(CCFLAGS) $(CPPFLAGS)
-	i686-elf-gcc -c init/init.c -o init/init.o $(CCFLAGS) $(CPPFLAGS)
-	i686-elf-gcc -T build/linker.ld -o build/gjmNIX.bin $(CPPFLAGS) -nostdlib -lgcc $(LINK_LIST)
+all: build/gjmNIX.bin
+
+LINK_LIST=boot/crti.o boot/boot.o boot/crtn.o \
+	init/init.o \
+	drivers/block_dev/block_dev.a drivers/character_dev/character_dev.a \
+	klib/klib.a \
+	lib/lib.a \
+	mm/mm.o \
+	fs/fs.o \
+	kernel/kernel.o \
+	kernel/math/math.a
+
+build/gjmNIX.bin: $(LINK_LIST)
+	$(CC) -T build/linker.ld -o $@ $(CPPFLAGS) -nostdlib -lgcc $(LINK_LIST)
+
+boot/crti.s: boot/crti.S
+boot/crti.o: boot/crti.s
+
+boot/boot.s: boot/boot.S
+boot/boot.o: boot/boot.s
+
+boot/crtn.s: boot/crtn.S
+boot/crtn.o: boot/crtn.s
+
+kernel/math/math.a:
+	(cd kernel/math; make)
+
+drivers/block_dev/block_dev.a:
+	(cd drivers/block_dev; make)
+
+drivers/character_dev/character_dev.a:
+	(cd drivers/character_dev; make)
+
+kernel/kernel.o:
+	(cd kernel; make)
+
+mm/mm.o:
+	(cd mm; make)
+
+fs/fs.o:
+	(cd fs; make)
+
+lib/lib.a:
+	(cd lib; make)
+
+klib/klib.a:
+	(cd klib; make)
 
 install:
 	mkdir -p build/isodir/boot/grub
@@ -54,8 +81,14 @@ test:
 clean:
 	rm -f boot/*.s boot/*.o
 	rm -rf build/isodir build/*.bin
-	rm -f init/*.o
-	rm -f lib/*.o
-	rm -f klib/*.o
-	rm -f drivers/block_dev/*.o drivers/character_dev/*.o drivers/*.o
-	rm -f *.iso
+	rm -f init/*.o *.iso
+	(cd mm; make clean)
+	(cd fs; make clean)
+	(cd kernel; make clean)
+	(cd lib; make clean)
+	(cd klib; make clean)
+	(cd drivers/character_dev; make clean)
+	(cd drivers/block_dev; make clean)
+	(cd kernel/math; make clean)
+
+init/init.o: init/init.c

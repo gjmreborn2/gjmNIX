@@ -20,14 +20,17 @@ CPPFLAGS=-I../include -ffreestanding
 .c.o:
 	$(CC) $(CCFLAGS) -I../include -c -o $*.o $<
 
-OBJS= mm_manager.o
+OBJS= kprintf.o kstring.o kutils.o multiboot.o
 
-all: mm.o
+all: klib.a
 
-mm.o: $(OBJS)
-	$(LD) -r -o mm.o $(OBJS)
+klib.a: $(OBJS)
+	$(AR) rcs klib.a $(OBJS)
 
 clean:
 	rm -f *.o *.a
 
-mm_manager.o: mm_manager.c
+kprintf.o: kprintf.c
+kstring.o: kstring.c
+kutils.o: kutils.c
+multiboot.o: multiboot.c

@@ -31,26 +31,13 @@ _start:
             32-bit protected mode
             interrupts disabled
             memory paging disabled
-	    A20 enabled
+	        A20 enabled
             floating point instructions not initialized
             instruction set extensions not initialized
             no GDT
     */
 
 /* I have to define the ROOT_DEV (where is the rootfs MINIX 1.0 file system stored) and SWAP_DEV */
-
-# setup.S
-#	move system module (from 0x10000) to the beginning of the memory 0x0000
-#	identify VGA card
-#	enter protected mode, jump to head.S (32-bit mode first assembly file)
-
-# head.S
-# 	setup proper IDT, GDT, LDT
-#	initialize FPU, paging
-#	go to kinit
-
-/*SYSTEM_SEGMENT_START = DEFAULT_SYSSEG
-SYSTEM_SEGMENT_END   = SYSTEM_SEGMENT_START + DEFAULT_SYSSIZE*/
 
 /*
 	This is overwritten by build.py user-space program.
@@ -76,6 +63,19 @@ SYSTEM_SEGMENT_END   = SYSTEM_SEGMENT_START + DEFAULT_SYSSIZE*/
 */
 ROOT_DEV = 0
 SWAP_DEV = 0
+
+/*SYSTEM_SEGMENT_START = DEFAULT_SYSSEG
+SYSTEM_SEGMENT_END   = SYSTEM_SEGMENT_START + DEFAULT_SYSSIZE*/
+
+# setup.S
+#	move system module (from 0x10000) to the beginning of the memory 0x0000
+#	identify VGA card
+#	enter protected mode, jump to head.S (32-bit mode first assembly file)
+
+# head.S
+# 	setup proper IDT, GDT, LDT
+#	initialize FPU, paging
+#	go to kinit
 
 cli
 

@@ -20,14 +20,16 @@ CPPFLAGS=-I../include -ffreestanding
 .c.o:
 	$(CC) $(CCFLAGS) -I../include -c -o $*.o $<
 
-OBJS= mm_manager.o
+OBJS= ctype.o stdlib.o string.o
 
-all: mm.o
+all: lib.a
 
-mm.o: $(OBJS)
-	$(LD) -r -o mm.o $(OBJS)
+lib.a: $(OBJS)
+	$(AR) rcs lib.a $(OBJS)
 
 clean:
 	rm -f *.o *.a
 
-mm_manager.o: mm_manager.c
+ctype.o: ctype.c
+stdlib.o: stdlib.c
+string.o: string.c
