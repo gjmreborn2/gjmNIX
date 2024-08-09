@@ -1,50 +1,21 @@
-/*
-    TODO: JUTRO KROKI:
-        - PORZADEK W PLIKACH TU OTWARTYCH: MULTIBOOT.C BOOT.S KUTILS.H (INLINE ASM CHECK) INIT.C ASM_CONFIG.H CONFIG.H
-        - START KSIAZKI ZNOW OD BOOTSECTORA I JUTRO PRZYNAJMNIEJ BOOTSECT.S SETUP.S HEAD.S NA TEN MOMENT WSZYSTKO W BOOT.S
-            A KIEDYS Z C BEDE WOLAL JAKAS FUNKCJE ASMOWA TYPU SETUP_ENVIRONMENT
-        - FUNKCJE DO WYSWIETLANIA (CONSOLE.C TO CHYBA BYLO) ZROBIC JUTRO JAKAKOLWIEK PRZYNAJMNIEJ
-
-    CEL DLUGOTERMINOWY Z KODEKLOUDEM: GNU MAKE!!!!
-*/
-
-#define ASM_FILE 1
 #include <gjmnix/asm_config.h>
 
-/* FIXING ONLY HEADER */
-
-#define AOUT_KLUDGE 0
 #define GRUB_MULTIBOOT_ARCHITECTURE_I386 0
 
- .align  8
-
-        /*  Multiboot header. */
+.align  8
 multiboot_header:
-        /*  magic */
         .long   MULTIBOOT2_HEADER_MAGIC
-        /*  ISA: i386 */
         .long   GRUB_MULTIBOOT_ARCHITECTURE_I386
-        /*  Header length. */
         .long   multiboot_header_end - multiboot_header
         /*  checksum */
         .long   -(MULTIBOOT2_HEADER_MAGIC + GRUB_MULTIBOOT_ARCHITECTURE_I386 + (multiboot_header_end - multiboot_header))
-
-/*framebuffer_tag_start:
-        .short MULTIBOOT_HEADER_TAG_FRAMEBUFFER     # unsupported tag type 0x8!!!!
-        .short MULTIBOOT_HEADER_TAG_OPTIONAL
-        .long framebuffer_tag_end - framebuffer_tag_start
-        .long 1024
-        .long 768
-        .long 32*/
-framebuffer_tag_end:
+multiboot_header_tag_end:
         .short MULTIBOOT_HEADER_TAG_END
         .short 0
         .long 8
 multiboot_header_end:
 
-/* FIXING ONLY HEADER */
-
-# allocate 16KB stack
+/* allocate 16KB stack */
 .section .bss
 .align 16
 stack_bottom:
@@ -114,7 +85,7 @@ mov $stack_top, %esp
 call _init  # call the global constructors
 push %ebx    # multiboot2 structure
 push %eax    # magic value
-call cmain
+call kmain
 
 cli
 1:  hlt

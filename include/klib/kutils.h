@@ -9,11 +9,11 @@
 #define qword	 unsigned long long	/* 64-bits */
 #define port_num uint16_t
 
-#define NULL	 0
 #define internal static
 
 inline void outb(port_num port, byte val) {
     //__asm__ volatile ( "outb %b0 %w1" : : "a"(val), "Nd"(port) : "memory");
+	__asm__ volatile("outb %0, %1" : : "a"(val), "Nd"(port) );
 }
 
 inline byte inb(port_num port) {

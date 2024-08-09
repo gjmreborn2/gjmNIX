@@ -1,66 +1,10 @@
 #include <klib/kutils.h>
 
 #include <stdint.h>
+#include <string.h>
 
-/* How many bytes from the start of the file we search for the header */
-#define MULTIBOOT_SEARCH			32768
-#define MULTIBOOT_HEADER_ALIGN			8
-
-#define MULTIBOOT2_HEADER_MAGIC			0xE85250D6
-
-/* Alignment of multiboot modules */
-#define MULTIBOOT_MOD_ALIGN			0x00001000
-
-/* Alignment of the multiboot info structure */
-#define MULTIBOOT_INFO_ALIGN			0x00000008
-
-/* Flags set in the 'flags' member of the multiboot header. */
-#define MULTIBOOT_TAG_ALIGN                  	8
-#define MULTIBOOT_TAG_TYPE_END               	0
-#define MULTIBOOT_TAG_TYPE_CMDLINE           	1
-#define MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME  	2
-#define MULTIBOOT_TAG_TYPE_MODULE            	3
-#define MULTIBOOT_TAG_TYPE_BASIC_MEMINFO     	4
-#define MULTIBOOT_TAG_TYPE_BOOTDEV           	5
-#define MULTIBOOT_TAG_TYPE_MMAP              	6
-#define MULTIBOOT_TAG_TYPE_VBE               	7
-#define MULTIBOOT_TAG_TYPE_FRAMEBUFFER       	8
-#define MULTIBOOT_TAG_TYPE_ELF_SECTIONS      	9
-#define MULTIBOOT_TAG_TYPE_APM               	10
-#define MULTIBOOT_TAG_TYPE_EFI32             	11
-#define MULTIBOOT_TAG_TYPE_EFI64             	12
-#define MULTIBOOT_TAG_TYPE_SMBIOS            	13
-#define MULTIBOOT_TAG_TYPE_ACPI_OLD          	14
-#define MULTIBOOT_TAG_TYPE_ACPI_NEW          	15
-#define MULTIBOOT_TAG_TYPE_NETWORK           	16
-#define MULTIBOOT_TAG_TYPE_EFI_MMAP          	17
-#define MULTIBOOT_TAG_TYPE_EFI_BS            	18
-#define MULTIBOOT_TAG_TYPE_EFI32_IH          	19
-#define MULTIBOOT_TAG_TYPE_EFI64_IH          	20
-#define MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR    	21
-
-#define MULTIBOOT_HEADER_TAG_END  		        0
-#define MULTIBOOT_HEADER_TAG_INFORMATION_REQUEST 1
-#define MULTIBOOT_HEADER_TAG_ADDRESS  		    2
-#define MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS  	3
-#define MULTIBOOT_HEADER_TAG_CONSOLE_FLAGS  	4
-#define MULTIBOOT_HEADER_TAG_FRAMEBUFFER  	  5
-#define MULTIBOOT_HEADER_TAG_MODULE_ALIGN  	  6
-#define MULTIBOOT_HEADER_TAG_EFI_BS        	  7
-#define MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI32 8
-#define MULTIBOOT_HEADER_TAG_ENTRY_ADDRESS_EFI64 9
-#define MULTIBOOT_HEADER_TAG_RELOCATABLE  	10
-
-#define MULTIBOOT_ARCHITECTURE_I386 		   0
-#define MULTIBOOT_ARCHITECTURE_MIPS32  		 4
-#define MULTIBOOT_HEADER_TAG_OPTIONAL 		 1
-
-#define MULTIBOOT_LOAD_PREFERENCE_NONE		 0
-#define MULTIBOOT_LOAD_PREFERENCE_LOW 		 1
-#define MULTIBOOT_LOAD_PREFERENCE_HIGH 		 2
-
-#define MULTIBOOT_CONSOLE_FLAGS_CONSOLE_REQUIRED   1
-#define MULTIBOOT_CONSOLE_FLAGS_EGA_TEXT_SUPPORTED 2
+#include <gjmnix/asm_config.h>
+#include <gjmnix/config.h>
 
 struct multiboot_header {
 	/* Must be MULTIBOOT_MAGIC */
@@ -343,16 +287,63 @@ struct multiboot_tag_load_base_addr {
   uint32_t load_base_addr;
 };
 
-/* Parsed multiboot2 header with gained essential information for the current OS version (and needs) */
-struct boot_info boot_info;
+int validate_boot_info(uint32_t boot_magic) {
+    if(boot_magic != MULTIBOOT2_BOOTLOADER_MAGIC) {
+        return ERROR;
+    }
+    return SUCCESS;
+}
 
-//struct boot_info parse_boot_info(uint32_t multiboot2_address) {
-//	struct boot_info binfo;
-//
-//	return binfo;
-//}
+static void parse_mmap(struct boot_info *binfo, struct multiboot_tag *mmap_tag) {
+    for(size_t i = 0; i < 16; i++) {
+        binfo->mmap[i].is_active = false;
+    }
 
-void parse_boot_info(unsigned long addr) {
-	// todo from tutorial
+    multiboot_memory_map_t *mmap;
+    size_t mmap_counter = 0;
+
+    for(mmap = ((struct multiboot_tag_mmap *) mmap_tag)->entries; (uint8_t *) mmap < (uint8_t *) mmap_tag + mmap_tag->size; mmap = (multiboot_memory_map_t *) ((unsigned long) mmap + ((struct multiboot_tag_mmap *) mmap_tag)->entry_size)) {
+        binfo->mmap[mmap_counter].is_active = true;
+
+        binfo->mmap[mmap_counter].base_addr_part1 = mmap->addr >> 32;
+        binfo->mmap[mmap_counter].base_addr_part2 = mmap->addr & 0xFFFFFFFF;
+        binfo->mmap[mmap_counter].len_part1 = mmap->len >> 32;
+        binfo->mmap[mmap_counter].len_part2 = mmap->len & 0xFFFFFFFF;
+        binfo->mmap[mmap_counter].type = mmap->type;
+
+        mmap_counter++;
+    }
+}
+
+int parse_boot_info(struct boot_info *binfo, uint32_t multiboot2_address) {
+    if(multiboot2_address & 7) {
+        return ERROR;
+    }
+    if(!binfo) {
+        return ERROR;
+    }
+
+    struct multiboot_tag *tag;
+/*    uint32_t size = *(uint32_t *) multiboot2_address;*/
+    for(tag = (struct multiboot_tag *) (multiboot2_address + 8); tag->type != MULTIBOOT_TAG_TYPE_END; tag = (struct multiboot_tag *) ((uint8_t *) tag + ((tag->size + 7) & ~7))) {
+        uint32_t tag_type = tag->type;
+/*        uint32_t tag_size = tag->size;*/
+        if(tag_type == MULTIBOOT_TAG_TYPE_CMDLINE) {
+            strcpy(binfo->cmd_line, ((struct multiboot_tag_string *) tag)->string);
+        } else if(tag_type == MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME) {
+            strcpy(binfo->loader_name, ((struct multiboot_tag_string *) tag)->string);
+        } else if(tag_type == MULTIBOOT_TAG_TYPE_BASIC_MEMINFO) {
+            binfo->mem_lower = ((struct multiboot_tag_basic_meminfo *) tag)->mem_lower;
+            binfo->mem_upper = ((struct multiboot_tag_basic_meminfo *) tag)->mem_upper;
+        } else if(tag_type == MULTIBOOT_TAG_TYPE_BOOTDEV) {
+            binfo->boot_device_biosdev = ((struct multiboot_tag_bootdev *) tag)->biosdev;
+            binfo->boot_device_slice = ((struct multiboot_tag_bootdev *) tag)->slice;
+            binfo->boot_device_part = ((struct multiboot_tag_bootdev *) tag)->part;
+        } else if(tag_type == MULTIBOOT_TAG_TYPE_MMAP) {
+            parse_mmap(binfo, tag);
+        }
+    }
+
+    return SUCCESS;
 }
 

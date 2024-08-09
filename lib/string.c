@@ -27,6 +27,17 @@ size_t strlen(const char *str) {
 	return len;
 }
 
+void strncpy(char *dst, const char *src, size_t n) {
+	size_t i = 0;
+	while(i++ != n && (*dst++ = *src++))
+		;
+}
+
+void strcpy(char *dst, const char *src) {
+	while((*dst++ = *src++) != '\0')
+		;
+}
+
 int memcmp(const void *aptr, const void *bptr, size_t size) {
 	const byte *a = (const byte *) aptr;
 	const byte *b = (const byte *) bptr;
