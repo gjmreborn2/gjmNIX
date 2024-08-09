@@ -3,27 +3,20 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define byte 	 unsigned char		/* 8-bits */
-#define word	 unsigned short		/* 16-bits */
-#define dword	 unsigned int		/* 32-bits */
-#define qword	 unsigned long long	/* 64-bits */
-#define port_num uint16_t
-
 #define internal static
 
-inline void outb(port_num port, byte val) {
-    //__asm__ volatile ( "outb %b0 %w1" : : "a"(val), "Nd"(port) : "memory");
-	__asm__ volatile("outb %0, %1" : : "a"(val), "Nd"(port) );
+inline void outb(uint16_t port, uint8_t val) {
+    __asm__ volatile ("outb %b0, %w1" : : "a"(val), "Nd"(port) : "memory");
 }
 
-inline byte inb(port_num port) {
-    byte val;
-    __asm__ volatile ( "inb %w1, %b0" : "=a" (val) : "Nd" (port) : "memory");
+inline uint8_t inb(uint16_t port) {
+    uint8_t val;
+    __asm__ volatile ("inb %w1, %b0" : "=a" (val) : "Nd" (port) : "memory");
     return val;
 }
 
 inline bool are_interrupts_enabled() {
-    unsigned long eflags;
+    uint32_t eflags;
     asm volatile ( "pushf\n\t" "pop %0" : "=g" (eflags) );
     return eflags & (1 << 9);
 }
@@ -34,8 +27,8 @@ inline uint64_t rdtsc() {
     return val;
 }
 
-inline unsigned long read_cr0() {
-    unsigned long val;
+inline uint32_t read_cr0() {
+    uint32_t val;
     asm volatile ("mov %%cr0, %0" : "=r"(val));
     return val;
 }

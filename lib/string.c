@@ -1,10 +1,9 @@
 #include <string.h>
-
-#include <klib/kutils.h>
+#include <stdint.h>
 
 void *memmove(void *pdest, const void *psrc, size_t size) {
-	byte *dest = (byte *) pdest;
-	const byte *src = (const byte *) psrc;
+	uint8_t *dest = (uint8_t *) pdest;
+	const uint8_t *src = (const uint8_t *) psrc;
 
 	if(dest < src) {
 		for(size_t i = 0; i < size; i++) {
@@ -39,8 +38,8 @@ void strcpy(char *dst, const char *src) {
 }
 
 int memcmp(const void *aptr, const void *bptr, size_t size) {
-	const byte *a = (const byte *) aptr;
-	const byte *b = (const byte *) bptr;
+	const uint8_t *a = (const uint8_t *) aptr;
+	const uint8_t *b = (const uint8_t *) bptr;
 
 	for(size_t i = 0; i < size; i++) {
 		if(a[i] < b[i]) {
@@ -53,17 +52,17 @@ int memcmp(const void *aptr, const void *bptr, size_t size) {
 }
 
 void *memset(void *bufptr, int value, size_t size) {
-	byte *buf = (byte *) bufptr;
+	uint8_t *buf = (uint8_t *) bufptr;
 
 	for(size_t i = 0; i < size; i++) {
-		buf[i] = (byte) value;
+		buf[i] = (uint8_t) value;
 	}
 	return bufptr;
 }
 
 void *memcpy(void *restrict pdest, const void *restrict psrc, size_t size) {
-	byte *dest = (byte *) pdest;
-	const byte *src = (const byte *) psrc;
+	uint8_t *dest = (uint8_t *) pdest;
+	const uint8_t *src = (const uint8_t *) psrc;
 
 	for(size_t i = 0; i < size; i++) {
 		dest[i] = src[i];
