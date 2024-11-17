@@ -61,16 +61,8 @@ _start:
 	0x300 - /dev/hd0 - entire 1st hard drive
 	0x301 - /dev/hd1 - 1st partition of the first disk
 */
-ROOT_DEV = 0
-SWAP_DEV = 0
-
-/*SYSTEM_SEGMENT_START = DEFAULT_SYSSEG
-SYSTEM_SEGMENT_END   = SYSTEM_SEGMENT_START + DEFAULT_SYSSIZE*/
-
-# setup.S
-#	move system module (from 0x10000) to the beginning of the memory 0x0000
-#	identify VGA card
-#	enter protected mode, jump to head.S (32-bit mode first assembly file)
+ROOT_DEV = 0xDADA
+SWAP_DEV = 0xFBFB
 
 # head.S
 # 	setup proper IDT, GDT, LDT
@@ -85,16 +77,42 @@ mov $stack_top, %esp
 call _init  # call the global constructors
 push %ebx    # multiboot2 structure
 push %eax    # magic value
+mov $swap_dev, %ecx
+push %ecx
+mov $root_dev, %edx
+push %edx
 call kmain
 
 cli
 1:  hlt
     jmp 1b
 
-
 swap_dev:
 	.word SWAP_DEV
 root_dev:
 	.word ROOT_DEV
+
+/* Routines */
+.global reprogram_pic
+reprogram_pic:
+    # reprogram 2 PIC hardware interrupt controllers
+    movb $0x11, %al
+    outb %al, $0x20
+    outb %al, $0xA0
+    movb $0x20, %al
+    outb %al, $0x21
+    movb $0x28, %al
+    outb %al, $0xA1
+    movb $0x04, %al
+    outb %al, $0x21
+    movb $0x02, %al
+    outb %al, $0xA1
+    movb $0x01, %al
+    outb %al, $0x21
+    outb %al, $0xA1
+    movb $0xFF, %al
+    outb %al, $0x21
+    outb %al, $0xA1
+    ret
 
 .size _start, . - _start
