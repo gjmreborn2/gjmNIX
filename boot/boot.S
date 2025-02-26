@@ -35,7 +35,12 @@ _start:
             Paging
             C++ features: global constructors, exceptions
     */
+    call _init      # call the global constructors
 
+    /* Push the pointer to the Multiboot information structure. */
+    pushl   %ebx
+    /* Push the magic value. */
+    pushl   %eax
     call kernel_init
 
     cli
